@@ -8,9 +8,17 @@ XNavigationViewItem::XNavigationViewItem(QWidget *parent)
 {
     QRect screenRect = QGuiApplication::primaryScreen()->geometry();
     setSizePolicy(QSizePolicy::Policy::Fixed, QSizePolicy::Policy::Fixed);
-    setFixedSize(screenRect.width() * 0.15, screenRect.width() * 0.15 * 0.135);
-    setSizePolicy(QSizePolicy::Policy::Fixed, QSizePolicy::Policy::Fixed);
-    setFixedSize(screenRect.width() * 0.15, screenRect.width() * 0.15 * 0.135);
+
+    setMinimumSize(70, 70);
+
+    QIcon icon(":/chat48.png"); // 替换为图标的路径
+    setIcon(icon); // 设置图标
+    setIconSize(QSize(30, 30)); // 设置图标大小
+
+
+    setText("chat");
+
+
 
 }
 
@@ -20,11 +28,9 @@ XNavigationViewItem::XNavigationViewItem(const QString &text, QWidget *parent)
 
 }
 
-
 void XNavigationViewItem::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
-
 
     // 先判断是否按下
     if (this->isDown())
@@ -45,12 +51,17 @@ void XNavigationViewItem::paintEvent(QPaintEvent *)
 
     painter.setPen(Qt::black);
 
+
+    int iconX = (rect().width() - this->iconSize().width()) / 2;
+    int iconY = 10;
+    QRect iconRect(iconX, iconY, this->iconSize().width(), this->iconSize().height());
+    icon().paint(&painter, iconRect);
+
     // 设置字体
     QFont font("Segoe UI", 16); // 字体名称和大小
     painter.setFont(font);
     painter.setRenderHint(QPainter::RenderHint::Antialiasing);
-    painter.drawText(0,0,this->width(),this->height(),Qt::AlignCenter,"123ABC一二三");
-
+    painter.drawText(0,20,this->width(),this->height(),Qt::AlignCenter,text());
 
 }
 

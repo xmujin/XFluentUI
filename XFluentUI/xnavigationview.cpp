@@ -1,6 +1,5 @@
 #include "xnavigationview.h"
 #include "xnavigationviewitem.h"
-#include <QApplication>
 #include <QMainWindow>
 #include <QTreeWidget>
 #include <QPushButton>
@@ -11,21 +10,36 @@
 #include <QLabel>
 #include <QToolButton>
 #include <QScreen>
+#include <QLayout>
+#include <QPropertyAnimation>
+#include <QSplitter>
 XNavigationView::XNavigationView(QWidget *parent)
-    : QWidget{parent}, sideNavigation{new QVBoxLayout()}
+    : QWidget{parent}
 {
-    setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Expanding);
-    setMinimumSize(700,500);
 
-    QWidget *horizontalLayoutWidget = new QWidget(this);
-    stackedWidget = new QStackedWidget(horizontalLayoutWidget);
-    // 创建主布局  包含左侧边导航栏以及右边栈页面
-    QHBoxLayout *hLayout = new QHBoxLayout(horizontalLayoutWidget);
 
-    QRect screenRect = QGuiApplication::primaryScreen()->geometry();
-    int screenW = screenRect.width();
-    int screenH = screenRect.height();
-    qDebug()<<"窗口位置："<<"屏幕宽度:\t"<<screenW<<"屏幕高度:\t"<<screenH;//必须包含相关的头文件
+
+
+    indicator = new QFrame(this);
+    indicator->setFrameShape(QFrame::Box);  // 设置为框形状
+    indicator->setStyleSheet("background-color: blue;");  // 设置背景颜色为蓝色
+    indicator->setFixedWidth(5);  // 蓝色条宽度
+    indicator->setFixedHeight(37);  // 高度根据你的设计来调整
+    //indicator->move(0, 0);  // 默认位置
+
+
+    // 创建水平布局  包含左侧边导航栏以及右边栈页面
+    hLayout = new QHBoxLayout(this);
+
+    hLayout->setSpacing(0); // 按钮之间的间距为0
+    hLayout->setContentsMargins(0, 0, 0, 0); // 所有边距为0
+
+    // 创建垂直布局，包含左侧导航栏的所有子项
+    sideNavigation = new QVBoxLayout();
+
+
+    //创建栈页面
+    stackedWidget = new QStackedWidget(this);
 
 
     sideNavigation->setSpacing(0); // 按钮之间的间距为0
@@ -35,66 +49,54 @@ XNavigationView::XNavigationView(QWidget *parent)
 
 
     // 将侧边栏和页面区域添加到主布局
-
     hLayout->addLayout(sideNavigation);
     hLayout->addWidget(stackedWidget);
-    // 连接导航项的点击事件
-    // connect(treeWidget, &QTreeWidget::itemClicked, [=](QTreeWidgetItem *item, int) {
-    //     int index = treeWidget->indexOfTopLevelItem(item);
-    //     stackedWidget->setCurrentIndex(index);
-    // });
 
-    //setLayout(hLayout);
+    XNavigationViewItem *item1 = new XNavigationViewItem(this);
 
-    stackedWidget->setMinimumWidth(300);
-    stackedWidget->setMinimumHeight(200);
-
-    stackedWidget->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Expanding);
-
-    //stackedWidget->setFixedHeight(300);
-    //stackedWidget->setFixedWidth(300);
-
-    XNavigationViewItem *sb = new  XNavigationViewItem(horizontalLayoutWidget);
     QWidget *page1 = new QWidget();
+    QWidget *page2 = new QWidget();
 
-    QLabel *dd = new QLabel(tr("sdfsddddddddddddddddddddddsdfsd bfgydfstertxcvxc"), page1);
-    addNavigationItem(sb, page1);
+    QLabel *label1 = new QLabel("sdfsddddddddddddddddddddddsdfsd bfgydfstertxcvxc", page1);
+    QLabel *label2 = new QLabel("sdfxcvbddddddddddddsdfsd bfgydfstertxcvxc", page2);
+
+    QSplitter *splitter = new QSplitter(Qt::Horizontal);
+    splitter->addWidget(page1);
+    splitter->addWidget(page2);
+    // 设置分割线（句柄）宽度
+    splitter->setHandleWidth(1);  // 设置分割线宽度为5像素
+    splitter->setStyleSheet("QSplitter::handle { background-color: blue; }");
+    //splitter->setSizes(QList<int>() << 250 << 250);
+    addNavigationItem(item1, splitter);
+    //splitter->show();
 
 
-    XNavigationViewItem *sb1 = new  XNavigationViewItem(horizontalLayoutWidget);
+    //XNavigationViewItem *item2 = new XNavigationViewItem(this);
 
-    addNavigationItem(sb1, new QLabel(tr("sdfsdfs")));
+    //addNavigationItem(item2, page2);
 
-    stackedWidget->setCurrentIndex(0);  // 确保设置了正确的索引
-
-
-    QSize stackedSize = stackedWidget->size();
-    int width = stackedSize.width();    // 获取宽度
-    int height = stackedSize.height();  // 获取高度
-    qDebug() << "fule" << width;
-    qDebug() << "fule" << height;
-    dd->setGeometry(QRect(0, 0, 300, 50));
-    qDebug() << "fule" << page1->width();
-    qDebug() << "fule" << page1->height();
-
-    qDebug() << "horizontalLayoutWidget" << horizontalLayoutWidget->width();
-    qDebug() << "horizontalLayoutWidget" << horizontalLayoutWidget->height();
-
-    qDebug() << "this" << this->rect().width();
-    qDebug() << "this" << this->rect().height();
+    //stackedWidget->setCurrentIndex(0);  // 确保设置了正确的索引
 
 }
 
 
 void XNavigationView::addNavigationItem(XNavigationViewItem *navigationViewItem, QWidget *page)
 {
-    //sideNavigation->insertItem(sideNavigation->count() - 1, );
     sideNavigation->insertWidget(sideNavigation->count() - 1, navigationViewItem);
     stackedWidget->addWidget(page);
-
+    indicator->raise();
     connect(navigationViewItem, &XNavigationViewItem::clicked, [=]() {
+        // 指示器动画
+        QPropertyAnimation *anim = new QPropertyAnimation(indicator, "pos", this);
+        anim->setDuration(100);
+        anim->setStartValue(indicator->pos());
+        int src = stackedWidget->currentIndex();
         stackedWidget->setCurrentWidget(page);  // 切换到 page1
-        qDebug() << "fule";
+        int dest = stackedWidget->currentIndex();
+        int delta = src - dest;
+        anim->setEndValue(QPoint(0, indicator->pos().y() - delta * 40 ));
+        anim->start();
+
     });
 }
 

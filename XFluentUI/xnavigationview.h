@@ -14,11 +14,11 @@ public:
     void addNavigationItem(XNavigationViewItem *navigationViewItem, QWidget *page);
 signals:
 
-private:
+public:
     QFrame *indicator;  // 蓝色滑动条
     QStackedWidget *stackedWidget; // 栈页面
     QVBoxLayout *sideNavigation;
-
+    QHBoxLayout *hLayout;
 };
 
 #endif // XNAVIGATIONVIEW_H
